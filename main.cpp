@@ -24,11 +24,11 @@ vex::motor frontright(PORT10);
 
 
 //flywheel, 1 is closer to the front
-vex::motor flywheel1(PORT6, gearSetting::ratio6_1, true);
-vex::motor flywheel2(PORT8, gearSetting::ratio6_1);
+vex::motor flywheel1(PORT6, gearSetting::ratio6_1);
+vex::motor flywheel2(PORT8, gearSetting::ratio6_1, true);
 
 //other
-vex::motor intake(PORT7, true);
+vex::motor intake(PORT13, true);
 //vex::motor x();
 
 
