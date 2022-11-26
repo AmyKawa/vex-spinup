@@ -31,8 +31,34 @@ vex::motor flywheel2(PORT8, gearSetting::ratio6_1, true);
 vex::motor intake(PORT13, true);
 //vex::motor x();
 
+vex::motor test(PORT12, true);
 
+double wheelWidth = 4.125;
+double wheelCirc = wheelWidth * 3.14;
 
+void pdrivedistance(double distance, double kP) {
+  double revolutions = distance / wheelCirc;
+  bool done = false;
+  while(!done) {
+    Brain.Screen.printAt( 10, 50, "Hello V5 %f", (float)frontleft.rotation(rotationUnits::rev));
+    double error = revolutions - frontleft.rotation(rotationUnits::rev); 
+    double power = error * kP;
+    frontleft.spin(directionType::fwd, power, velocityUnits::pct);
+    frontright.spin(directionType::fwd, power, velocityUnits::pct);
+    backleft.spin(directionType::fwd, power, velocityUnits::pct);
+    backright.spin(directionType::fwd, power, velocityUnits::pct);
+  }
+
+}
+void drivedistance(double distance, double velocity) { //inches
+  double revolutions = distance / wheelCirc;
+
+  frontleft.rotateFor(directionType::fwd, revolutions, rotationUnits::rev, velocity, velocityUnits::pct, false);
+  backleft.rotateFor(directionType::fwd, revolutions, rotationUnits::rev, velocity, velocityUnits::pct, false);
+  frontright.rotateFor(directionType::fwd, revolutions, rotationUnits::rev, velocity, velocityUnits::pct, false);
+  backright.rotateFor(directionType::fwd, revolutions, rotationUnits::rev, velocity, velocityUnits::pct, true);
+
+}
 int main() {
     int count = 0;
 
@@ -40,7 +66,7 @@ int main() {
 
     while(1) {
 
-      Brain.Screen.printAt( 10, 50, "Hello V5 %d", count++ );
+      Brain.Screen.printAt( 10, 50, "Hello V5 %f", (float)frontleft.rotation(rotationUnits::rev));
         // Allow other tasks to run
       
       //Wheels and movement
@@ -48,7 +74,10 @@ int main() {
       backright.spin(directionType::fwd, master.Axis3.value() - master.Axis4.value(), velocityUnits::pct);
       frontleft.spin(directionType::fwd, master.Axis3.value() + master.Axis4.value(), velocityUnits::pct);
       frontright.spin(directionType::fwd, master.Axis3.value() - master.Axis4.value(), velocityUnits::pct);
-
+    
+    if (master.ButtonA.pressing()){
+      pdrivedistance(12, 100);
+    }
       //Intake
       if (master.ButtonR1.pressing()){
         intake.spin(directionType::fwd, 100, velocityUnits::pct);
@@ -71,7 +100,7 @@ int main() {
       }
 
 
-      Brain.Screen.printAt( 10, 50, "Hello V5 %f", flywheel1.velocity(velocityUnits::rpm) * flywheelRatio );
+      //Brain.Screen.printAt( 10, 50, "Hello V5 %f", flywheel1.velocity(velocityUnits::rpm) * flywheelRatio );
       Brain.Screen.printAt( 10, 80, "hi angel");
       this_thread::sleep_for(10);
     }
