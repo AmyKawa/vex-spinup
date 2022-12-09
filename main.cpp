@@ -29,7 +29,7 @@ vex::motor flywheel2(PORT8, gearSetting::ratio6_1, true);
 
 //other
 vex::motor intake(PORT13, true);
-//vex::motor x();
+vex::motor indexer(PORT19, true);
 
 vex::motor test(PORT12, true);
 
@@ -89,10 +89,18 @@ int main() {
         intake.stop();
       }
 
+    if (master.ButtonL2.pressing()){
+      indexer.spinFor(90, rotationUnits::deg, 75, velocityUnits::pct);
+      indexer.spinFor(-90, rotationUnits::deg, 50, velocityUnits::pct);
+    }
+    else {
+      indexer.stop();
+    }
+
       //Flywheel
       if (master.ButtonL1.pressing()){
-        flywheel1.spin(directionType::fwd, 60, velocityUnits::pct);
-        flywheel2.spin(directionType::fwd, 60, velocityUnits:: pct);
+        flywheel1.spin(directionType::fwd, 100, velocityUnits::pct);
+        flywheel2.spin(directionType::fwd, 100, velocityUnits:: pct);
       }
       else {
         flywheel1.stop();
