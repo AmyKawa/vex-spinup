@@ -16,11 +16,11 @@ vex::controller master(controllerType::primary);
 
 // define your global instances of motors and other devices here
 //wheels
-//front == flywheel side
-vex::motor backleft(PORT1, true);
-vex::motor backright(PORT2);
-vex::motor frontleft(PORT9, true);
-vex::motor frontright(PORT10);
+//front == flywheel side (true means going backwards)
+vex::motor backleft(PORT1);
+vex::motor backright(PORT2, true);
+vex::motor frontleft(PORT9);
+vex::motor frontright(PORT10, true);
 
 
 //flywheel, 1 is closer to the front
@@ -59,25 +59,65 @@ void drivedistance(double distance, double velocity) { //inches
   backright.rotateFor(directionType::fwd, revolutions, rotationUnits::rev, velocity, velocityUnits::pct, true);
 
 }
+
+int indexercontroller() {
+
+  while(1){
+    //Indexer
+    if (master.ButtonL2.pressing()){
+      indexer.spinFor(120, rotationUnits::deg, 100, velocityUnits::pct);
+      indexer.spinFor(-130, rotationUnits::deg, 50, velocityUnits::pct);
+    }
+    else {
+      indexer.stop();
+    }
+    
+    //Reset indexer position (accomodating for the shitty spin mech)
+    if (master.ButtonA.pressing()){
+      indexer.spinFor(-2, rotationUnits::deg, 100, velocityUnits::pct);
+    }
+    else {
+      indexer.stop();
+    }
+     this_thread::sleep_for(10);
+  }
+}
+
+int sgn(float num) {
+  if(num >= 0) {
+    return 1;
+  } 
+  return 0;
+}
+bool flywheel_on = false;
+void toggle_fw() {
+  flywheel_on = !flywheel_on;
+}
 int main() {
-    int count = 0;
+    //int count = 0;
 
-    double flywheelRatio = 60/8;
+    //double flywheelRatio = 60/8;
+    task test = task(indexercontroller);
 
+    float previous_error = 0;
+    float gain = .002;
+    float tbh = 0;
+    float target = 480;
+    float output = 0;
+
+    //master.ButtonL1.pressed(toggle_fw);
+    
     while(1) {
 
-      Brain.Screen.printAt( 10, 50, "Hello V5 %f", (float)frontleft.rotation(rotationUnits::rev));
+      Brain.Screen.printAt( 10, 50, "%f", flywheel1.velocity(velocityUnits::rpm)); //%f//, (float)frontleft.rotation(rotationUnits::rev));
         // Allow other tasks to run
       
       //Wheels and movement
-      backleft.spin(directionType::fwd, master.Axis3.value() + master.Axis4.value(), velocityUnits::pct);
-      backright.spin(directionType::fwd, master.Axis3.value() - master.Axis4.value(), velocityUnits::pct);
-      frontleft.spin(directionType::fwd, master.Axis3.value() + master.Axis4.value(), velocityUnits::pct);
-      frontright.spin(directionType::fwd, master.Axis3.value() - master.Axis4.value(), velocityUnits::pct);
-    
-    if (master.ButtonA.pressing()){
-      pdrivedistance(12, 100);
-    }
+      backright.spin(directionType::fwd, master.Axis3.value() + master.Axis1.value() * .7, velocityUnits::pct);
+      backleft.spin(directionType::fwd, master.Axis3.value() - master.Axis1.value() * .7, velocityUnits::pct);
+      frontright.spin(directionType::fwd, master.Axis3.value() + master.Axis1.value() * .7, velocityUnits::pct);
+      frontleft.spin(directionType::fwd, master.Axis3.value() - master.Axis1.value() * .7, velocityUnits::pct);
+
       //Intake
       if (master.ButtonR1.pressing()){
         intake.spin(directionType::fwd, 100, velocityUnits::pct);
@@ -87,29 +127,61 @@ int main() {
       }
       else {
         intake.stop();
-      }
-
-    if (master.ButtonL2.pressing()){
-      indexer.spinFor(90, rotationUnits::deg, 75, velocityUnits::pct);
-      indexer.spinFor(-90, rotationUnits::deg, 50, velocityUnits::pct);
-    }
-    else {
-      indexer.stop();
-    }
+      }   
+    
 
       //Flywheel
-      if (master.ButtonL1.pressing()){
-        flywheel1.spin(directionType::fwd, 100, velocityUnits::pct);
-        flywheel2.spin(directionType::fwd, 100, velocityUnits:: pct);
+      if(master.ButtonL1.pressing()) {
+        flywheel1.spin(fwd, 100, velocityUnits::pct);
+        flywheel2.spin(fwd, 100, velocityUnits::pct);
       }
       else {
         flywheel1.stop();
         flywheel2.stop();
       }
+     
 
+      if(master.ButtonA.pressing()) {
+        target += 5;
+        master.Screen.print("%f", target);
+      }
+      if(master.ButtonB.pressing()) {
+        target -= 5;
+        master.Screen.print("%f", target);
+      }
 
       //Brain.Screen.printAt( 10, 50, "Hello V5 %f", flywheel1.velocity(velocityUnits::rpm) * flywheelRatio );
-      Brain.Screen.printAt( 10, 80, "hi angel");
+      //Brain.Screen.printAt( 10, 80, "hi angel");
+      //master.Screen.print("%f", flywheel1.velocity(velocityUnits::rpm));
+      
+      Brain.Screen.printAt( 10, 80, "play omori today");
+      Brain.Screen.printAt( 10, 130, "add me on osu");
+
+
+      //if(flywheel_on) {
+        //tbh
+      //  float error = target - flywheel1.velocity(velocityUnits::rpm);
+        
+      //  output += gain * error;
+        
+      //  if(sgn(error) != sgn(previous_error)) {
+      //    output = .5 * (output + tbh);
+      //    tbh = output;
+      //    previous_error = error;
+      //  }
+        
+      //  flywheel1.spin(directionType::fwd, output, voltageUnits::volt);
+      // flywheel2.spin(directionType::fwd, output, voltageUnits::volt);
+        
+      //}
+      //else{
+      //  flywheel1.stop();
+      //  flywheel2.stop();
+      //}
+        
       this_thread::sleep_for(10);
+
+
+      
     }
 }
